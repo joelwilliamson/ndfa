@@ -85,17 +85,23 @@ let construct_state label_root transitions null_transitions =
 	{ label = label_root ^ id; transitions; null_transitions }
 	
 
-let concatenate m1 m2 =
-	{ start = m1.start;
-	final_state = m2.final_state ;
-	map = StateMap.fold ~init:m2.map ~f:(fun ~key ~data acc ->
-		if (List.mem m1.final_state key)
-		then let new_state = {
-			label = data.label;
-			transitions = data.transitions;
-			null_transitions = m2.start :: data.null_transitions } in
-			StateMap.add ~key:key ~data:new_state acc
-		else StateMap.add ~key ~data acc) m1.map}
+let rec concatenate machines =
+	let aux m1 m2 =
+		{ start = m1.start;
+		final_state = m2.final_state ;
+		map = StateMap.fold ~init:m2.map ~f:(fun ~key ~data acc ->
+			if (List.mem m1.final_state key)
+			then let new_state = {
+				label = data.label;
+				transitions = data.transitions;
+				null_transitions = m2.start :: data.null_transitions } in
+				StateMap.add ~key:key ~data:new_state acc
+			else StateMap.add ~key ~data acc) m1.map}
+	in match machines with
+	| [] -> let start = construct_state "null" [] []
+		in {start = start.label; final_state = []; map = StateMap.singleton start.label start}
+	| [hd] -> hd
+	| hd::tl -> aux hd (concatenate tl)
 
 let alternate machines =
 	let init = construct_state "alt_init" [] (List.map ~f:(fun m -> m.start) machines)
@@ -143,7 +149,7 @@ let character_class_machine p =
 type regular_language =
 	| String of string
 	| Union of regular_language list
-	| Concat of regular_language * regular_language
+	| Concat of regular_language list
 	| Star of regular_language
 	| Wildcard
 	| Class of (char -> bool)
@@ -153,7 +159,7 @@ type compiled = char machine
 let rec machine_of_language = function
 	| String s -> string_to_machine s
 	| Union l -> alternate (List.map l ~f:machine_of_language)
-	| Concat (l1,l2) -> concatenate (machine_of_language l1) (machine_of_language l2)
+	| Concat l -> concatenate (List.map l ~f:machine_of_language)
 	| Star l -> star (machine_of_language l)
 	| Wildcard -> character_class_machine (fun _ -> true)
 	| Class p -> character_class_machine p
@@ -166,10 +172,10 @@ let () =
 	let open OUnit2 in
 	let please_recognize test str _ = assert_bool ("Failed to recognize " ^ str) (test str)
 	and dont_recognize test str _ = assert_bool ("Recgnized " ^ str ^ " incorrectly") (not (test str)) in
-	let j_l = Concat (Union [String "J"; String "j"], String "oel")
-	and g_l = Concat (Union [String "G"; String "g"], String "wen")
-	and int_l = Concat (Class Char.is_digit, (Star (Class Char.is_digit)))
-	in let j_dot_l = Concat (j_l, Star Wildcard)
+	let j_l = Concat [Union [String "J"; String "j"]; String "oel"]
+	and g_l = Concat [Union [String "G"; String "g"]; String "wen"]
+	and int_l = Concat [Class Char.is_digit; (Star (Class Char.is_digit))]
+	in let j_dot_l = Concat [j_l; Star Wildcard]
 	in let jg_m = compile (Union [j_l; g_l])
 	in let several_jg_m = compile (Star (Union [j_l; g_l]))
 	in let uppercase_joel_test = please_recognize (check j_l) "Joel"

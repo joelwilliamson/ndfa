@@ -1,7 +1,7 @@
 type regular_language =
         | String of string
 	| Union of regular_language list
-	| Concat of regular_language * regular_language
+	| Concat of regular_language list
 	| Star of regular_language
 	| Wildcard
 	| Class of (char -> bool)
