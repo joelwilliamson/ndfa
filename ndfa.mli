@@ -1,6 +1,6 @@
 type regular_language =
         | String of string
-	| Union of regular_language * regular_language
+	| Union of regular_language list
 	| Concat of regular_language * regular_language
 	| Star of regular_language
 	| Wildcard

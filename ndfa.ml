@@ -142,7 +142,7 @@ let character_class_machine p =
 
 type regular_language =
 	| String of string
-	| Union of regular_language * regular_language
+	| Union of regular_language list
 	| Concat of regular_language * regular_language
 	| Star of regular_language
 	| Wildcard
@@ -152,7 +152,7 @@ type compiled = char machine
 
 let rec machine_of_language = function
 	| String s -> string_to_machine s
-	| Union (l1,l2) -> alternate [(machine_of_language l1);(machine_of_language l2)]
+	| Union l -> alternate (List.map l ~f:machine_of_language)
 	| Concat (l1,l2) -> concatenate (machine_of_language l1) (machine_of_language l2)
 	| Star l -> star (machine_of_language l)
 	| Wildcard -> character_class_machine (fun _ -> true)
@@ -166,12 +166,12 @@ let () =
 	let open OUnit2 in
 	let please_recognize test str _ = assert_bool ("Failed to recognize " ^ str) (test str)
 	and dont_recognize test str _ = assert_bool ("Recgnized " ^ str ^ " incorrectly") (not (test str)) in
-	let j_l = Concat (Union (String "J" ,String "j"), String "oel")
-	and g_l = Concat (Union (String "G", String "g"), String "wen")
+	let j_l = Concat (Union [String "J"; String "j"], String "oel")
+	and g_l = Concat (Union [String "G"; String "g"], String "wen")
 	and int_l = Concat (Class Char.is_digit, (Star (Class Char.is_digit)))
 	in let j_dot_l = Concat (j_l, Star Wildcard)
-	in let jg_m = compile (Union (j_l, g_l))
-	in let several_jg_m = compile (Star (Union (j_l, g_l)))
+	in let jg_m = compile (Union [j_l; g_l])
+	in let several_jg_m = compile (Star (Union [j_l; g_l]))
 	in let uppercase_joel_test = please_recognize (check j_l) "Joel"
 	and lowercase_joel_test = please_recognize (check j_l) "joel"
 	and invalid_joel_test = dont_recognize (check j_l) "jOel"
