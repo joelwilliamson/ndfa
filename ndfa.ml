@@ -2,7 +2,7 @@ open Core.Std ;;
 open Option.Monad_infix ;;
 module StateMap = Map.Make(String) ;;
 
-type 'a transition = 'a * string
+type 'a transition = ('a -> bool) * string
 
 type 'a state = {
 	label : string ;
@@ -54,7 +54,7 @@ let step_execution e c =
 		(* Remove any states that didn't exist. This should be a no-op *)
 		|> List.filter_map ~f:Fn.id
 		|> List.fold_left ~init:[] ~f:(fun acc st ->
-			(List.filter ~f:(fun t -> (fst t) = c) st.transitions
+			(List.filter ~f:(fun t -> (fst t) c) st.transitions
 			|> List.map ~f:snd)@acc) in
 	let null_states = null_transition_explore next_states next_states in
 	{ substrate = e.substrate; current_states = union next_states null_states }
@@ -107,7 +107,7 @@ let alternate a b =
 
 let string_to_machine s =
 	let state_list_unconnected = String.fold s ~init:[] ~f:(fun acc c ->
-		(c,construct_state (Char.to_string c) [] []) :: acc)
+		((fun x -> x = c) ,construct_state (Char.to_string c) [] []) :: acc)
 		|> List.rev in
 	let rec connect_states = function
 		| [] -> []
