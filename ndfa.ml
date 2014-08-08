@@ -29,31 +29,6 @@ type 'a execution = {
 
 let union l1 l2 = l1 @ (List.filter l2 ~f:(fun x -> List.mem l1 x |> not))
 
-(*
-let valid_state_map m =
-	List.for_all (StateMap.keys m) ~f:(fun k -> 
-		match (StateMap.find m k) with
-		| None -> false
-		| Some v -> v.label = k
-		)
-
-let valid_machine m =
-	let state_names:string list = StateMap.keys m
-	and states = StateMap.data m in
-	let transition_targets:string list  = List.fold_left states ~init:[] ~f:(fun acc x ->
-		(List.map x.transitions snd) @ acc)
-	in
-	(* Each transition target should also be a state name *)
-	List.exists transition_targets (fun x -> List.mem state_names x)
-	&& (valid_state_map m);;
-
-let construct_machine state_list start_state final_state =
-	{map=List.fold_left state_list ~init:StateMap.empty ~f:(fun acc x ->
-		StateMap.add acc ~key:x.label ~data:x) ;
-	start=start_state ;
-	final_state = final_state }
-*)
-
 let begin_executing m =
 	{substrate=m; current_states=[m.start]}
 
