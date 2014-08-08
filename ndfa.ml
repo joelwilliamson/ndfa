@@ -203,6 +203,8 @@ let () =
 	and multi_concat = please_recognize (check (Concat [j_l; stewart; will])) "JoelStewartwilliamson"
 	and hyphenated1 = please_recognize (check (hyphen_name ('m',"ac") ('l',"aughlin"))) "Mac-laughlin"
 	and hyphenated2 = please_recognize (check (hyphen_name ('m',"ac") ('l',"aughlin"))) "Mac-Laughlin"
+	and over_broad = please_recognize (check (Star Wildcard)) "OMcKeefe"
+	and greek = please_recognize (check (Star Wildcard)) "ηξκδησκξ"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -221,5 +223,7 @@ let () =
 		;"names optional spaces">::spaces_2
 		;"hyphen 1">::hyphenated1
 		;"hyphen 2">::hyphenated2
+		;"overbroad">::over_broad
+		;"Greek">::greek
 		]
 	in run_test_tt_main test_suite
