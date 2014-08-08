@@ -183,6 +183,7 @@ let () =
 	and simple_dot = please_recognize (check Wildcard) "x"
 	and joel_trailing = please_recognize (check j_dot_l) "Joel is the programmer of this module"
 	and number = please_recognize (check int_l) "123"
+	and number2 = please_recognize (check (Union [int_l])) "12345"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -195,5 +196,6 @@ let () =
 		"wildcard 1">::simple_dot;
 		"wildcard 2">::joel_trailing
 		;"integer 1">::number
+		;"integer 2">::number2
 		]
 	in run_test_tt_main test_suite
