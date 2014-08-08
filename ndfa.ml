@@ -177,8 +177,10 @@ let () =
 					[String (Char.uppercase first |> Char.to_string);
 					String (Char.to_string first)];
 				String rest] in
-	let j_l = Concat [Union [String "J"; String "j"]; String "oel"]
-	and g_l = Concat [Union [String "G"; String "g"]; String "wen"]
+	let j_l = name 'j' "oel"
+	and g_l = name 'g' "wen"
+	and stewart = name 's' "tewart"
+	and will = name 'w' "illiamson"
 	and int_l = Concat [Class Char.is_digit; (Star (Class Char.is_digit))]
 	in let j_dot_l = Concat [j_l; Star Wildcard]
 	in let jg_m = compile (Union [j_l; g_l])
@@ -196,6 +198,7 @@ let () =
 	and number = please_recognize (check int_l) "123"
 	and number2 = please_recognize (check (Union [int_l])) "12345"
 	and reject_everything = dont_recognize (check (Union [])) "1"
+	and multi_concat = please_recognize (check (Concat [j_l; stewart; will])) "JoelStewartwilliamson"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -210,5 +213,6 @@ let () =
 		;"integer 1">::number
 		;"integer 2">::number2
 		;"non-recognizer">::reject_everything
+		;"long form name">::multi_concat
 		]
 	in run_test_tt_main test_suite
