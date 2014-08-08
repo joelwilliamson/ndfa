@@ -177,6 +177,7 @@ let () =
 					[String (Char.uppercase first |> Char.to_string);
 					String (Char.to_string first)];
 				String rest] in
+	let hyphen_name (f1,r1) (f2,r2) = Concat [name f1 r1; String "-"; name f2 r2] in
 	let j_l = name 'j' "oel"
 	and g_l = name 'g' "wen"
 	and stewart = name 's' "tewart"
@@ -193,12 +194,15 @@ let () =
 	and misspelled_gwen_test = dont_recognize (check_c jg_m) "Gewn"
 	and several_jg_test = please_recognize (check_c several_jg_m) "JoelGwengwenjoel"
 	and several_jg_spaces = dont_recognize (check_c several_jg_m) "Joel joel Gwen gwen"
+	and spaces_2 = please_recognize (check (Star (Concat [Union [j_l;g_l]; Union [String " ";String ""]]))) "Gwen joelJoel gwen"
 	and simple_dot = please_recognize (check Wildcard) "x"
 	and joel_trailing = please_recognize (check j_dot_l) "Joel is the programmer of this module"
 	and number = please_recognize (check int_l) "123"
 	and number2 = please_recognize (check (Union [int_l])) "12345"
 	and reject_everything = dont_recognize (check (Union [])) "1"
 	and multi_concat = please_recognize (check (Concat [j_l; stewart; will])) "JoelStewartwilliamson"
+	and hyphenated1 = please_recognize (check (hyphen_name ('m',"ac") ('l',"aughlin"))) "Mac-laughlin"
+	and hyphenated2 = please_recognize (check (hyphen_name ('m',"ac") ('l',"aughlin"))) "Mac-Laughlin"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -214,5 +218,8 @@ let () =
 		;"integer 2">::number2
 		;"non-recognizer">::reject_everything
 		;"long form name">::multi_concat
+		;"names optional spaces">::spaces_2
+		;"hyphen 1">::hyphenated1
+		;"hyphen 2">::hyphenated2
 		]
 	in run_test_tt_main test_suite
