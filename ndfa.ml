@@ -184,6 +184,7 @@ let () =
 	and joel_trailing = please_recognize (check j_dot_l) "Joel is the programmer of this module"
 	and number = please_recognize (check int_l) "123"
 	and number2 = please_recognize (check (Union [int_l])) "12345"
+	and reject_everything = dont_recognize (check (Union [])) "1"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -197,5 +198,6 @@ let () =
 		"wildcard 2">::joel_trailing
 		;"integer 1">::number
 		;"integer 2">::number2
+		;"non-recognizer">::reject_everything
 		]
 	in run_test_tt_main test_suite
