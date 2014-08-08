@@ -166,6 +166,7 @@ let () =
 	and dont_recognize test str _ = assert_bool ("Recgnized " ^ str ^ " incorrectly") (not (test str)) in
 	let j_l = Concat (Union (String "J" ,String "j"), String "oel")
 	and g_l = Concat (Union (String "G", String "g"), String "wen")
+	and int_l = Concat (Class Char.is_digit, (Star (Class Char.is_digit)))
 	in let j_dot_l = Concat (j_l, Star Wildcard)
 	in let jg_m = compile (Union (j_l, g_l))
 	in let several_jg_m = compile (Star (Union (j_l, g_l)))
@@ -179,6 +180,7 @@ let () =
 	and several_jg_spaces = dont_recognize (check_c several_jg_m) "Joel joel Gwen gwen"
 	and simple_dot = please_recognize (check Wildcard) "x"
 	and joel_trailing = please_recognize (check j_dot_l) "Joel is the programmer of this module"
+	and number = please_recognize (check int_l) "123"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -190,5 +192,6 @@ let () =
 		"kleene star 2">::several_jg_spaces;
 		"wildcard 1">::simple_dot;
 		"wildcard 2">::joel_trailing
+		;"integer 1">::number
 		]
 	in run_test_tt_main test_suite
