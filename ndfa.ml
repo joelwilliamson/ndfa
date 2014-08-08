@@ -163,10 +163,11 @@ let () =
 	let please_recognize test str _ = assert_bool ("Failed to recognize " ^ str) (test str)
 	and dont_recognize test str _ = assert_bool ("Recgnized " ^ str ^ " incorrectly") (not (test str)) in
 	let j_l = Concat (Union (String "J" ,String "j"), String "oel")
-	and g_l = Concat (Union (String "G", String "g"), String "wen") in
-	let jg_m = compile (Union (j_l, g_l)) in
-	let several_jg_m = compile (Star (Union (j_l, g_l))) in
-	let uppercase_joel_test = please_recognize (check j_l) "Joel"
+	and g_l = Concat (Union (String "G", String "g"), String "wen")
+	in let j_dot_l = Concat (j_l, Star Wildcard)
+	in let jg_m = compile (Union (j_l, g_l))
+	in let several_jg_m = compile (Star (Union (j_l, g_l)))
+	in let uppercase_joel_test = please_recognize (check j_l) "Joel"
 	and lowercase_joel_test = please_recognize (check j_l) "joel"
 	and invalid_joel_test = dont_recognize (check j_l) "jOel"
 	and uppercase_gwen_test = please_recognize (check_c jg_m) "Gwen"
@@ -174,6 +175,8 @@ let () =
 	and misspelled_gwen_test = dont_recognize (check_c jg_m) "Gewn"
 	and several_jg_test = please_recognize (check_c several_jg_m) "JoelGwengwenjoel"
 	and several_jg_spaces = dont_recognize (check_c several_jg_m) "Joel joel Gwen gwen"
+	and simple_dot = please_recognize (check Wildcard) "x"
+	and joel_trailing = please_recognize (check j_dot_l) "Joel is the programmer of this module"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -182,6 +185,8 @@ let () =
 		"lowercase joel union">::lowercase_j_2_test;
 		"misspelling">::misspelled_gwen_test;
 		"kleene star">::several_jg_test;
-		"kleene star 2">::several_jg_spaces
+		"kleene star 2">::several_jg_spaces;
+		"wildcard 1">::simple_dot;
+		"wildcard 2">::joel_trailing
 		]
 	in run_test_tt_main test_suite
