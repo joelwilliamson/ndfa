@@ -5,6 +5,8 @@ type regular_language =
 	| Star of regular_language
 	| Wildcard
 	| Class of (char -> bool)
+	| Maybe of regular_language
+	| Some of regular_language
 
 type compiled
 

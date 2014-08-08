@@ -153,6 +153,8 @@ type regular_language =
 	| Star of regular_language
 	| Wildcard
 	| Class of (char -> bool)
+	| Maybe of regular_language
+	| Some of regular_language
 
 type compiled = char machine
 
@@ -163,6 +165,8 @@ let rec machine_of_language = function
 	| Star l -> star (machine_of_language l)
 	| Wildcard -> character_class_machine (fun _ -> true)
 	| Class p -> character_class_machine p
+	| Maybe l -> machine_of_language (Union [l; String ""])
+	| Some l -> machine_of_language (Concat [l; Star l])
 
 let check l s = check_string (machine_of_language l) s
 let compile l = machine_of_language l
@@ -205,6 +209,7 @@ let () =
 	and hyphenated2 = please_recognize (check (hyphen_name ('m',"ac") ('l',"aughlin"))) "Mac-Laughlin"
 	and over_broad = please_recognize (check (Star Wildcard)) "OMcKeefe"
 	and greek = please_recognize (check (Star Wildcard)) "ηξκδησκξ"
+	and long_joel = please_recognize (check (Concat [(name 'j' "oel");(Maybe (Concat [String " ";stewart]));String " ";will])) "Joel Williamson"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -225,5 +230,6 @@ let () =
 		;"hyphen 2">::hyphenated2
 		;"overbroad">::over_broad
 		;"Greek">::greek
+		;"Spaced name">::long_joel
 		]
 	in run_test_tt_main test_suite
