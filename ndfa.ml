@@ -134,7 +134,7 @@ let star machine =
 
 let wildcard_machine _ =
 	let final = construct_state "final" [] [] in
-	let init = construct_state "singleton" [(fun _ -> true),"final"] [] in
+	let init = construct_state "singleton" [(fun _ -> true),final.label] [] in
 	{ start = init.label; final_state = [final.label];
 	map = StateMap.singleton final.label final |> StateMap.add ~key:init.label ~data:init }
 
