@@ -97,11 +97,13 @@ let concatenate m1 m2 =
 			StateMap.add ~key:key ~data:new_state acc
 		else StateMap.add ~key ~data acc) m1.map}
 
-let alternate a b =
-	let init = construct_state "alt_init" [] [a.start;b.start] in
-	{ start = init.label; final_state = a.final_state @ b.final_state;
-	map =	StateMap.fold a.map ~init:b.map ~f:(fun ~key ~data acc ->
-			StateMap.add acc ~key ~data)
+let alternate machines =
+	let init = construct_state "alt_init" [] (List.map ~f:(fun m -> m.start) machines)
+	and merge_maps acc b = StateMap.fold b ~init:acc ~f:(fun ~key ~data acc ->
+		StateMap.add acc ~key ~data) in
+	{ start = init.label; final_state = List.fold machines ~init:[] ~f:(fun acc m -> m.final_state @ acc);
+	map =	List.fold machines ~init:StateMap.empty ~f:(fun acc b ->
+		merge_maps acc b.map)
 		|> StateMap.add ~key:init.label ~data:init
 	}
 
@@ -150,7 +152,7 @@ type compiled = char machine
 
 let rec machine_of_language = function
 	| String s -> string_to_machine s
-	| Union (l1,l2) -> alternate (machine_of_language l1) (machine_of_language l2)
+	| Union (l1,l2) -> alternate [(machine_of_language l1);(machine_of_language l2)]
 	| Concat (l1,l2) -> concatenate (machine_of_language l1) (machine_of_language l2)
 	| Star l -> star (machine_of_language l)
 	| Wildcard -> character_class_machine (fun _ -> true)
