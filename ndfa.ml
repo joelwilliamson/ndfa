@@ -132,9 +132,9 @@ let star machine =
 			StateMap.add acc ~key:state_label			
 			~data:{prev with null_transitions = machine.start::prev.null_transitions})}
 
-let wildcard_machine _ =
+let character_class_machine f =
 	let final = construct_state "final" [] [] in
-	let init = construct_state "singleton" [(fun _ -> true),final.label] [] in
+	let init = construct_state "singleton" [f,final.label] [] in
 	{ start = init.label; final_state = [final.label];
 	map = StateMap.singleton final.label final |> StateMap.add ~key:init.label ~data:init }
 
@@ -152,7 +152,7 @@ let rec machine_of_language = function
 	| Union (l1,l2) -> alternate (machine_of_language l1) (machine_of_language l2)
 	| Concat (l1,l2) -> concatenate (machine_of_language l1) (machine_of_language l2)
 	| Star l -> star (machine_of_language l)
-	| Wildcard -> wildcard_machine ()
+	| Wildcard -> character_class_machine (fun _ -> true)
 
 let check l s = check_string (machine_of_language l) s
 let compile l = machine_of_language l
