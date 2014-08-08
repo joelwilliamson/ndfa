@@ -4,6 +4,7 @@ type regular_language =
 	| Concat of regular_language * regular_language
 	| Star of regular_language
 	| Wildcard
+	| Class of (char -> bool)
 
 type compiled
 
