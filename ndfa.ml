@@ -170,3 +170,25 @@ let rec machine_of_language = function
 let check l s = check_string (machine_of_language l) s
 let compile l = machine_of_language l
 let check_c m = check_string m
+
+let () =
+	let open OUnit2 in
+	let please_recognize test str _ = assert_bool ("Failed to recognize " ^ str) (test str)
+	and dont_recognize test str _ = assert_bool ("Recgnized " ^ str ^ " incorrectly") (not (test str)) in
+	let j_l = Concat (Union (String "J" ,String "j"), String "oel")
+	and g_l = Concat (Union (String "G", String "g"), String "wen") in
+	let jg_m = compile (Union (j_l, g_l)) in
+	let uppercase_joel_test = please_recognize (check j_l) "Joel"
+	and lowercase_joel_test = please_recognize (check j_l) "joel"
+	and invalid_joel_test = dont_recognize (check j_l) "jOel"
+	and uppercase_gwen_test = please_recognize (check_c jg_m) "Gwen"
+	and lowercase_j_2_test = please_recognize (check_c jg_m) "joel"
+	and misspelled_gwen_test = dont_recognize (check_c jg_m) "Gewn"
+	in let test_suite = "test suite">:::[
+		"uppercase joel">::uppercase_joel_test;
+		"lowercase joel">::lowercase_joel_test;
+		"invalid joel">::invalid_joel_test;
+		"uppercase Gwen">::uppercase_gwen_test;
+		"lowercase joel union">::lowercase_j_2_test;
+		"misspelling">::misspelled_gwen_test]
+	in run_test_tt_main test_suite
