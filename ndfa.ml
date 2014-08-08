@@ -2,12 +2,14 @@ open Core.Std ;;
 open Option.Monad_infix ;;
 module StateMap = Map.Make(String) ;;
 
+type 'a transition = 'a * string
+
 type 'a state = {
 	label : string ;
 	(* Each transition has an input character it recognizes, and if it
 	 * isn't a transition to a rejecting state, it has the name of the
 	 * target state. *)
-	transitions : ('a * string) list ;
+	transitions : 'a transition list ;
 	null_transitions : string list ;
 	}
 
