@@ -172,6 +172,11 @@ let () =
 	let open OUnit2 in
 	let please_recognize test str _ = assert_bool ("Failed to recognize " ^ str) (test str)
 	and dont_recognize test str _ = assert_bool ("Recgnized " ^ str ^ " incorrectly") (not (test str)) in
+	let name first rest = Concat
+				[Union
+					[String (Char.uppercase first |> Char.to_string);
+					String (Char.to_string first)];
+				String rest] in
 	let j_l = Concat [Union [String "J"; String "j"]; String "oel"]
 	and g_l = Concat [Union [String "G"; String "g"]; String "wen"]
 	and int_l = Concat [Class Char.is_digit; (Star (Class Char.is_digit))]
