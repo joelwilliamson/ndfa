@@ -211,6 +211,7 @@ let () =
 	and greek = please_recognize (check (Star Wildcard)) "ηξκδησκξ"
 	and long_joel = please_recognize (check (Concat [(name 'j' "oel");(Maybe (Concat [String " ";stewart]));String " ";will])) "Joel Williamson"
 	and not_all_nums = dont_recognize (check (Star (Class Char.is_digit))) "123a"
+	and two_words = dont_recognize (check (Concat [Star Wildcard;String " ";Star Wildcard])) "ghksakjghkja"
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -233,5 +234,6 @@ let () =
 		;"Greek">::greek
 		;"Spaced name">::long_joel
 		;"Non-numeric">::not_all_nums
+		;"Space Check">::two_words
 		]
 	in run_test_tt_main test_suite
