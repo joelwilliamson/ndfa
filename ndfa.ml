@@ -187,7 +187,7 @@ let check_char e c =
 let longest_matching_prefix' m s =
 	String.fold ~init:((get_char_checker' m),None,"") ~f:(fun (e,longest,interim) c ->
 		let (e',maybe,matched) = check_char e c in
-		if not maybe then (e,longest,interim)
+		if not maybe then (e',longest,interim)
 		else if matched then match longest with
 			| None -> e',Some (interim ^ (String.of_char c)),""
 			| Some s -> e',Some (s ^ interim ^ (String.of_char c)),""
