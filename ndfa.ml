@@ -239,6 +239,7 @@ let () =
 	and two_words = dont_recognize (check (Concat [Star Wildcard;String " ";Star Wildcard])) "ghksakjghkja"
 	and prefix_positive _ = assert_bool "Prefix positive" (longest_matching_prefix' jg_m "Gwen's name" = Some "Gwen")
 	and prefix_negative _ = assert_bool "Prefix negative" (longest_matching_prefix' jg_m "Joe" = None)
+	and prefix_tail _ = assert_bool "Prefix tail" (longest_matching_prefix int_l "123a2" = "123")
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
