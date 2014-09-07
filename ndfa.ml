@@ -59,10 +59,14 @@ let step_execution e c =
 	let null_states = null_transition_explore next_states next_states in
 	{ substrate = e.substrate; current_states = union next_states null_states }
 
+(** Is the context in a valid final state? **)
+let matched e =
+	List.map e.current_states ~f:(List.mem e.substrate.final_state)
+	|> List.exists ~f:Fn.id
+
 let check_string m s =
 	let final_states = String.fold s ~init:(begin_executing m) ~f:step_execution in
-	List.map final_states.current_states ~f:(List.mem m.final_state)
-	|> (fun l -> List.mem l true)
+	matched final_states
 
 (* Regular languages have a recursive structure. A single character is a
  * regular language. A concatentation of regular languages is a regular
@@ -170,7 +174,27 @@ let rec machine_of_language = function
 
 let check l s = check_string (machine_of_language l) s
 let compile l = machine_of_language l
-let check_c m = check_string m
+let check' m = check_string m
+
+let get_char_checker l = machine_of_language l |> begin_executing
+let get_char_checker' m = begin_executing m
+
+let check_char e c =
+	let result = step_execution e c
+	in (result, List.is_empty result.current_states |> not,matched result) 
+
+let longest_matching_prefix' m s =
+	String.fold ~init:((get_char_checker' m),None,"") ~f:(fun (e,longest,interim) c ->
+		let (e',maybe,matched) = check_char e c in
+		if not maybe then (e,longest,interim)
+		else if matched then match longest with
+			| None -> e',Some (interim ^ (String.of_char c)),""
+			| Some s -> e',Some (s ^ interim ^ (String.of_char c)),""
+		else e',longest,interim ^ (String.of_char c)) s
+(*	|> function | (_,longest,_) -> longest*)
+
+let longest_matching_prefix (l:regular_language)  =
+	longest_matching_prefix' (machine_of_language l)
 
 let () =
 	let open OUnit2 in
@@ -193,11 +217,11 @@ let () =
 	in let uppercase_joel_test = please_recognize (check j_l) "Joel"
 	and lowercase_joel_test = please_recognize (check j_l) "joel"
 	and invalid_joel_test = dont_recognize (check j_l) "jOel"
-	and uppercase_gwen_test = please_recognize (check_c jg_m) "Gwen"
-	and lowercase_j_2_test = please_recognize (check_c jg_m) "joel"
-	and misspelled_gwen_test = dont_recognize (check_c jg_m) "Gewn"
-	and several_jg_test = please_recognize (check_c several_jg_m) "JoelGwengwenjoel"
-	and several_jg_spaces = dont_recognize (check_c several_jg_m) "Joel joel Gwen gwen"
+	and uppercase_gwen_test = please_recognize (check' jg_m) "Gwen"
+	and lowercase_j_2_test = please_recognize (check' jg_m) "joel"
+	and misspelled_gwen_test = dont_recognize (check' jg_m) "Gewn"
+	and several_jg_test = please_recognize (check' several_jg_m) "JoelGwengwenjoel"
+	and several_jg_spaces = dont_recognize (check' several_jg_m) "Joel joel Gwen gwen"
 	and spaces_2 = please_recognize (check (Star (Concat [Union [j_l;g_l]; Union [String " ";String ""]]))) "Gwen joelJoel gwen"
 	and simple_dot = please_recognize (check Wildcard) "x"
 	and joel_trailing = please_recognize (check j_dot_l) "Joel is the programmer of this module"
