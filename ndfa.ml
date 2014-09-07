@@ -142,7 +142,8 @@ let star machine =
 		~f:(fun acc state_label ->
 			let prev = StateMap.find_exn machine.map state_label in
 			StateMap.add acc ~key:state_label			
-			~data:{prev with null_transitions = machine.start::prev.null_transitions})}
+			~data:{prev with null_transitions = machine.start::prev.null_transitions});
+		final_state = machine.start::machine.final_state}
 
 let character_class_machine p =
 	let final = construct_state "final" [] [] in
@@ -239,7 +240,8 @@ let () =
 	and two_words = dont_recognize (check (Concat [Star Wildcard;String " ";Star Wildcard])) "ghksakjghkja"
 	and prefix_positive _ = assert_bool "Prefix positive" (longest_matching_prefix' jg_m "Gwen's name" = Some "Gwen")
 	and prefix_negative _ = assert_bool "Prefix negative" (longest_matching_prefix' jg_m "Joe" = None)
-	and prefix_tail _ = assert_bool "Prefix tail" (longest_matching_prefix int_l "123a2" = "123")
+	and prefix_tail _ = assert_bool "Prefix tail" (longest_matching_prefix int_l "123a2" = Some "123")
+	and empty_star = please_recognize (check' several_jg_m) ""
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -265,5 +267,6 @@ let () =
 		;"Space Check">::two_words
 		;"prefix_positive">::prefix_positive
 		;"prefix_negative">::prefix_negative
+		;"Empty star">::empty_star
 		]
 	in run_test_tt_main test_suite
