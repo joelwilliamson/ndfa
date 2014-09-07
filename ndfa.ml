@@ -158,9 +158,10 @@ type regular_language =
 	| Wildcard
 	| Class of (char -> bool)
 	| Maybe of regular_language
-	| Some of regular_language
+	| Several of regular_language
 
 type compiled = char machine
+type exec_context = char execution
 
 let rec machine_of_language = function
 	| String s -> string_to_machine s
@@ -170,7 +171,7 @@ let rec machine_of_language = function
 	| Wildcard -> character_class_machine (fun _ -> true)
 	| Class p -> character_class_machine p
 	| Maybe l -> machine_of_language (Union [l; String ""])
-	| Some l -> machine_of_language (Concat [l; Star l])
+	| Several l -> machine_of_language (Concat [l; Star l])
 
 let check l s = check_string (machine_of_language l) s
 let compile l = machine_of_language l
@@ -191,7 +192,7 @@ let longest_matching_prefix' m s =
 			| None -> e',Some (interim ^ (String.of_char c)),""
 			| Some s -> e',Some (s ^ interim ^ (String.of_char c)),""
 		else e',longest,interim ^ (String.of_char c)) s
-(*	|> function | (_,longest,_) -> longest*)
+	|> function | (_,longest,_) -> longest
 
 let longest_matching_prefix (l:regular_language)  =
 	longest_matching_prefix' (machine_of_language l)
@@ -236,6 +237,8 @@ let () =
 	and long_joel = please_recognize (check (Concat [(name 'j' "oel");(Maybe (Concat [String " ";stewart]));String " ";will])) "Joel Williamson"
 	and not_all_nums = dont_recognize (check (Star (Class Char.is_digit))) "123a"
 	and two_words = dont_recognize (check (Concat [Star Wildcard;String " ";Star Wildcard])) "ghksakjghkja"
+	and prefix_positive _ = assert_bool "Prefix positive" (longest_matching_prefix' jg_m "Gwen's name" = Some "Gwen")
+	and prefix_negative _ = assert_bool "Prefix negative" (longest_matching_prefix' jg_m "Joe" = None)
 	in let test_suite = "test suite">:::[
 		"uppercase joel">::uppercase_joel_test;
 		"lowercase joel">::lowercase_joel_test;
@@ -259,5 +262,7 @@ let () =
 		;"Spaced name">::long_joel
 		;"Non-numeric">::not_all_nums
 		;"Space Check">::two_words
+		;"prefix_positive">::prefix_positive
+		;"prefix_negative">::prefix_negative
 		]
 	in run_test_tt_main test_suite

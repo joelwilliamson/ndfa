@@ -6,7 +6,7 @@ type regular_language =
 	| Wildcard
 	| Class of (char -> bool)
 	| Maybe of regular_language
-	| Some of regular_language
+	| Several of regular_language
 
 type compiled
 
@@ -36,3 +36,8 @@ val get_char_checker' : compiled -> exec_context
   * The second bool indicates if the currently provided sequence of chars is
   * matched. **)
 val check_char : exec_context -> char -> (exec_context * bool * bool)
+
+(** Find the longest prefix of the argument string that is matched by the
+  * regular expression. **)
+val longest_matching_prefix : regular_language -> string -> string option
+val longest_matching_prefix' : compiled -> string -> string option
