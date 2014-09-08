@@ -35,7 +35,7 @@ let identifiers = Lexer.(
  *)
 let strings = Lexer.(
 	let regular c = c <> '"' && c <> '\\'
-	and string_regex = Ndfa.Concat [
+	in let string_regex = Ndfa.Concat [
                           Ndfa.String "\"";
                           Ndfa.Star (Ndfa.Union [
                                   Ndfa.Class regular;
