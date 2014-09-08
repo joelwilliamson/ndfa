@@ -19,6 +19,14 @@ let symbols = In_channel.read_lines "c_punctuation"
 		|> List.map ~f:(String.split ~on:' ')
 		|> List.map ~f:make_symbol
 
+let identifiers = Lexer.(
+	{identifier="IDENT";
+	regex=Ndfa.Concat [
+		Ndfa.Class (fun c -> Char.is_alpha c || c = '_');
+		Ndfa.Star (Ndfa.Class (fun c-> Char.is_alphanum c || c = '_'))]
+		|> Ndfa.compile
+	})
+
 let strip_whitespace : (Lexer.token list -> Lexer.token list) =
 	List.filter ~f:(fun (t:Lexer.token) -> Lexer.(t.identifier) <> "white")
 
