@@ -48,10 +48,35 @@ let strings = Lexer.(
 	{identifier="string" ;
 	regex = string_regex	})
 
+let integers = Lexer.(
+	let ll_suffix  = Ndfa.Union [Ndfa.String "ll"; Ndfa.String "LL"]
+	and l_suffix = Ndfa.Union [Ndfa.String "l"; Ndfa.String "L"]
+	and unsigned_suffix = Ndfa.Union [Ndfa.String "u" ; Ndfa.String "U"]
+	in let integer_suffix = Ndfa.Union [
+		Ndfa.Concat [ unsigned_suffix ; Ndfa.Maybe l_suffix] ;
+		Ndfa.Concat [ unsigned_suffix ; ll_suffix] ;
+		Ndfa.Concat [ l_suffix ; Ndfa.Maybe unsigned_suffix ] ;
+		Ndfa.Concat [ ll_suffix ; Ndfa.Maybe unsigned_suffix ]]
+	and hex_digit = Ndfa.Class (fun c -> Char.is_digit c ||
+			Char.lowercase c |> String.contains "abcdef")
+	and octal_digit = Ndfa.Class (String.contains "01234567")
+	and nonzero_digit = Ndfa.Class (String.contains "123456789")
+	and digit = Ndfa.Class Char.is_digit
+	and hex_prefix = Ndfa.Union [ Ndfa.String "0x"; Ndfa.String "0X" ]
+	in let hex_constant = Ndfa.Concat [ hex_prefix ; Ndfa.Several hex_digit ]
+	and octal_constant = Ndfa.Concat [ Ndfa.String "0" ; Ndfa.Several octal_digit]
+	and decimal_constant = Ndfa.Concat [ nonzero_digit ; Ndfa.Star digit]
+	in let integer_constant = Ndfa.Concat [
+		Ndfa.Union [ decimal_constant; octal_constant; hex_constant] ;
+		Ndfa.Maybe integer_suffix ]
+	in
+	{identifier="integer" ;
+	regex=Ndfa.compile integer_constant})
+
 let strip_whitespace : (Lexer.token list -> Lexer.token list) =
 	List.filter ~f:(fun (t:Lexer.token) -> Lexer.(t.identifier) <> "white")
 
-let c_tokens = List.fold ~init:[whitespace;identifiers;strings]
+let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers]
 		(* The ordering is important here. Since keywords have the form
 		of identifiers, it is important they come first in the token
 		list, such that the lexer will prefer calling something a
@@ -61,4 +86,4 @@ let c_tokens = List.fold ~init:[whitespace;identifiers;strings]
 
 
 
-let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";lbl:  \t\ndo static"
+let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";lbl:100uLL+0x23f8*0345  \t\ndo static"
