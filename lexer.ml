@@ -36,4 +36,4 @@ let rec tokenize tcl input : token list =
 let integer = Ndfa.Several (Ndfa.Class Char.is_digit) |> Ndfa.compile ;;
 let hex_int = Ndfa.Several (Ndfa.Class (fun c -> (Char.is_digit c) || (Char.lowercase c |> List.mem ['a';'b';'c';'d';'e';'f']))) |> Ndfa.compile ;;
 let str = Ndfa.Several (Ndfa.Class Char.is_alpha) |> Ndfa.compile ;;
-let lang = [{identifier="int"; regex=integer};{identifier="hex"; regex=hex_int'};{identifier="string";regex=str}]
+let lang = [{identifier="int"; regex=integer};{identifier="hex"; regex=hex_int};{identifier="string";regex=str}]
