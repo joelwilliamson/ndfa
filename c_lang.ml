@@ -11,7 +11,8 @@ let whitespace =
 	regex = Ndfa.Several (Ndfa.Class Char.is_whitespace) |> Ndfa.compile })
 
 let make_symbol = function
-	| identifier::sym::[] -> Lexer.({identifier;regex=Ndfa.String sym |> Ndfa.compile})
+	| identifier::sym::[] ->
+		Lexer.({identifier;regex=Ndfa.String sym |> Ndfa.compile})
 	| _ -> failwith "Invalid line"
 
 let symbols = In_channel.read_lines "c_punctuation"
