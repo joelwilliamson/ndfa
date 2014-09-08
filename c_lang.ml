@@ -64,7 +64,7 @@ let integers = Lexer.(
 	and digit = Ndfa.Class Char.is_digit
 	and hex_prefix = Ndfa.Union [ Ndfa.String "0x"; Ndfa.String "0X" ]
 	in let hex_constant = Ndfa.Concat [ hex_prefix ; Ndfa.Several hex_digit ]
-	and octal_constant = Ndfa.Concat [ Ndfa.String "0" ; Ndfa.Several octal_digit]
+	and octal_constant = Ndfa.Concat [ Ndfa.String "0" ; Ndfa.Star octal_digit]
 	and decimal_constant = Ndfa.Concat [ nonzero_digit ; Ndfa.Star digit]
 	in let integer_constant = Ndfa.Concat [
 		Ndfa.Union [ decimal_constant; octal_constant; hex_constant] ;
