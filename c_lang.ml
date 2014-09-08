@@ -73,6 +73,17 @@ let integers = Lexer.(
 	{identifier="integer" ;
 	regex=Ndfa.compile integer_constant})
 
+let c_comment = Lexer.(
+	{identifier = "c_comment" ;
+	regex = Ndfa.Concat [ Ndfa.String "/*";
+			Ndfa.Star (Ndfa.Union [
+				Ndfa.Class ((<>) '/') ;
+				Ndfa.Concat [Ndfa.Class ((<>) '*') ;
+					Ndfa.String "/"]]) ;
+			Ndfa.String "*/" ] |> Ndfa.compile
+	})
+
+
 let cpp_comment = Lexer.(
 	{identifier = "cpp_comment" ;
 	regex = Ndfa.Concat [ Ndfa.String "//" ;
@@ -82,7 +93,7 @@ let cpp_comment = Lexer.(
 let strip_whitespace : (Lexer.token list -> Lexer.token list) =
 	List.filter ~f:(fun (t:Lexer.token) -> Lexer.(t.identifier) <> "white")
 
-let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers;cpp_comment]
+let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers;cpp_comment;c_comment]
 		(* The ordering is important here. Since keywords have the form
 		of identifiers, it is important they come first in the token
 		list, such that the lexer will prefer calling something a
@@ -92,4 +103,4 @@ let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers;cpp_comm
 
 
 
-let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";2+2;//This line is 4\nlbl:100uLL+0x23f8*0345<<=4  \t\ndo->static"
+let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";2+2;//This line is 4\nlbl:100uLL+0x23f8*0345<<=4  \t\ndo->static;int x = 4;/*A C comment\nspans several lines (** / *) */int y = 3;"
