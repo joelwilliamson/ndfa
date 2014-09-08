@@ -101,6 +101,4 @@ let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers;cpp_comm
 		~f:(fun acc l -> List.append l acc)
 		[keywords;symbols]
 
-
-
 let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";2+2;//This line is 4\nlbl:100uLL+0x23f8*0345<<=4  \t\ndo->static;int x = 4;/*A C comment\nspans several lines (** / *) */int y = 3;"
