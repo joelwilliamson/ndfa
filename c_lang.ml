@@ -38,4 +38,6 @@ let c_tokens = List.fold ~init:[whitespace;identifiers]
 		~f:(fun acc l -> List.append l acc)
 		[keywords;symbols]
 
-let c_string = "while\t{return;} goto ; :  \t\ndostatic"
+
+
+let c_string = "while\t{return;} goto lbl; lbl:  \t\ndo static"
