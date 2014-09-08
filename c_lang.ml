@@ -30,6 +30,12 @@ let identifiers = Lexer.(
 let strip_whitespace : (Lexer.token list -> Lexer.token list) =
 	List.filter ~f:(fun (t:Lexer.token) -> Lexer.(t.identifier) <> "white")
 
-let c_tokens = List.append keywords (whitespace::symbols)
+let c_tokens = List.fold ~init:[whitespace;identifiers]
+		(* The ordering is important here. Since keywords have the form
+		of identifiers, it is important they come first in the token
+		list, such that the lexer will prefer calling something a
+		keyword *)
+		~f:(fun acc l -> List.append l acc)
+		[keywords;symbols]
 
 let c_string = "while\t{return;} goto ; :  \t\ndostatic"
