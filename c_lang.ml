@@ -86,4 +86,4 @@ let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers]
 
 
 
-let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";lbl:100uLL+0x23f8*0345  \t\ndo static"
+let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";lbl:100uLL+0x23f8*0345<<=4  \t\ndo->static"
