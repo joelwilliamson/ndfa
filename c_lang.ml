@@ -73,6 +73,12 @@ let integers = Lexer.(
 	{identifier="integer" ;
 	regex=Ndfa.compile integer_constant})
 
+(* This breaks with the assumption that each token is on a single line. It
+ * interacts very badly with the line by line approach used to speed up
+ * the process. Gwen suggested I look into doing a preprocessing phase to
+ * either replace each comment with a space (in compliance with the standard)
+ * or to strip newlines from within comments so each one is on a single line.
+ *)
 let c_comment = Lexer.(
 	{identifier = "c_comment" ;
 	regex = Ndfa.Concat [ Ndfa.String "/*";
@@ -82,7 +88,6 @@ let c_comment = Lexer.(
 					Ndfa.String "/"]]) ;
 			Ndfa.String "*/" ] |> Ndfa.compile
 	})
-
 
 let cpp_comment = Lexer.(
 	{identifier = "cpp_comment" ;
