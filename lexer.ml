@@ -1,3 +1,5 @@
+open Core.Std
+
 type token = 
 	{
 	identifier : string ;
