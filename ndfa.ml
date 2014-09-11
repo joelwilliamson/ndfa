@@ -27,6 +27,7 @@ type 'a execution = {
 					 * can be in several states at once. *)
 	};;
 
+(* This is O(n^2)! Even sorting would be faster *)
 let union l1 l2 = l1 @ (List.filter l2 ~f:(fun x -> List.mem l1 x |> not))
 
 let begin_executing m =
@@ -48,7 +49,8 @@ let step_execution e c =
 		then found
 		else null_transition_explore (new_states @ found) new_states in
 	let next_states =
-		(* Get the list of current states, including prepratory null exploration *)
+		(* Get the list of current states, including prepratory null
+		 * exploration *)
 		List.map (union e.current_states (null_transition_explore e.current_states e.current_states))
 			~f:(fun s -> StateMap.find e.substrate.map s)
 		(* Remove any states that didn't exist. This should be a no-op *)
