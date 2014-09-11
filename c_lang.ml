@@ -99,6 +99,25 @@ let cpp_comment = Lexer.(
 let strip_whitespace : (Lexer.token list -> Lexer.token list) =
 	List.filter ~f:(fun (t:Lexer.token) -> Lexer.(t.identifier) <> "white")
 
+(* Since all C tokens are expected to be on a single line, this function
+ * removes all newlines within a C-style comment
+ *)
+let compress_comments_mut s : string=
+	let rec aux buf n in_comment =
+		if Bytes.length buf = n then buf else
+		if in_comment then match Bytes.get buf n with
+			| '*' -> if Bytes.get buf (n+1) = '/'
+				then aux buf (n+2) false
+				else aux buf (n+1) true
+			| '\n' -> Bytes.set buf n ' ' ;
+				aux buf (n+1) true
+			| _ -> aux buf (n+1) true
+		else if (Bytes.get buf n = '/' && Bytes.get buf (n+1) = '*')
+		then aux buf (n+2) true
+		else aux buf (n+1) false
+	in aux (Bytes.of_string s) 0 false
+		
+
 let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers;cpp_comment;c_comment]
 		(* The ordering is important here. Since keywords have the form
 		of identifiers, it is important they come first in the token
