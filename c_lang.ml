@@ -127,3 +127,11 @@ let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers;cpp_comm
 		[keywords;symbols]
 
 let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";2+2;//This line is 4\nlbl:100uLL+0x23f8*0345<<=4  \t\ndo->static;int x = 4;/*A C comment\nspans several lines (** / *) */int y = 3;"
+
+let count_whitespace_string () = In_channel.read_all "./count_whitespace.c"
+		|> compress_comments_mut
+		|> Lexer.tokenize c_tokens |> ignore
+
+let () = [Bench.Test.create ~name:"Count Whitespace" count_whitespace_string]
+	|> Bench.make_command
+	|> Command.run
