@@ -29,36 +29,33 @@ type 'a execution = {
 
 (* This is O(n^2)! Even sorting would be faster *)
 let union l1 l2 = l1 @ (List.filter l2 ~f:(fun x -> List.mem l1 x |> not))
+(* For each state in the current states, if c matches a transition we
+ * add it to the next set of states. After finding the transitions
+ * possible using a character, we also expand the state set with a null
+ * transition stage. *)
+let rec null_transition_explore m found reconsider =
+	let new_states = List.fold_left ~init:[] reconsider
+		~f:(fun acc state_name ->
+			StateMap.find m.map state_name
+			|> function | None -> acc | Some state ->
+				state.null_transitions @ acc)
+		|> List.filter ~f:(fun x -> not (List.mem found x)) in
+	if (List.is_empty new_states)
+	then found
+	else null_transition_explore m (new_states @ found) new_states
 
 let begin_executing m =
-	{substrate=m; current_states=[m.start]}
+	{substrate=m; current_states=m.start:: (null_transition_explore m [m.start] [m.start])}
 
 let step_execution e c =
-	(* For each state in the current states, if c matches a transition we
-	 * add it to the next set of states. After finding the transitions
-	 * possible using a character, we also expand the state set with a null
-	 * transition stage. *)
-	let rec null_transition_explore found reconsider =
-		let new_states = List.fold_left ~init:[] reconsider
-			~f:(fun acc state_name ->
-			StateMap.find e.substrate.map state_name
-			|> function | None -> acc | Some state ->
-			state.null_transitions @ acc)
-		|> List.filter ~f:(fun x -> not (List.mem found x)) in
-		if (List.is_empty new_states)
-		then found
-		else null_transition_explore (new_states @ found) new_states in
-	let next_states =
-		(* Get the list of current states, including prepratory null
-		 * exploration *)
-		List.map (union e.current_states (null_transition_explore e.current_states e.current_states))
+	let next_states = List.map e.current_states
 			~f:(fun s -> StateMap.find e.substrate.map s)
 		(* Remove any states that didn't exist. This should be a no-op *)
 		|> List.filter_map ~f:Fn.id
 		|> List.fold_left ~init:[] ~f:(fun acc st ->
 			(List.filter ~f:(fun t -> (fst t) c) st.transitions
 			|> List.map ~f:snd)@acc) in
-	let null_states = null_transition_explore next_states next_states in
+	let null_states = null_transition_explore e.substrate next_states next_states in
 	{ substrate = e.substrate; current_states = union next_states null_states }
 
 (** Is the context in a valid final state? **)
