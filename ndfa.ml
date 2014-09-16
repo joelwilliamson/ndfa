@@ -47,13 +47,18 @@ let rec null_transition_explore m found reconsider =
 let begin_executing m =
 	{substrate=m; current_states=m.start:: (null_transition_explore m [m.start] [m.start])}
 
+let check_transition (c:'a) (t:'a transition) =
+	(fst t) c
+
 let step_execution e c =
 	let next_states = List.map e.current_states
 			~f:(fun s -> StateMap.find e.substrate.map s)
+			(* O(NlgN) *)
 		(* Remove any states that didn't exist. This should be a no-op *)
 		|> List.filter_map ~f:Fn.id
+			(* O(N) *)
 		|> List.fold_left ~init:[] ~f:(fun acc st ->
-			(List.filter ~f:(fun t -> (fst t) c) st.transitions
+			(List.filter ~f:(check_transition c) st.transitions
 			|> List.map ~f:snd)@acc) in
 	let null_states = null_transition_explore e.substrate next_states next_states in
 	{ substrate = e.substrate; current_states = union next_states null_states }
