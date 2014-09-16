@@ -2,7 +2,17 @@ open Core.Std ;;
 open Option.Monad_infix ;;
 module StateMap = Map.Make(String) ;;
 
-type 'a transition = ('a -> bool) * string
+type 'a transition =
+	| Fun of ('a -> bool) * string
+	| Single of 'a * string
+
+let check_transition (c:'a) (t:'a transition) =
+	match t with
+	| Fun (t,_) -> t c
+	| Single (t,_) -> t = c
+let transition_target = function
+	| Fun (_,t) -> t
+	| Single (_,t) -> t
 
 type 'a state = {
 	label : string ;
@@ -47,8 +57,7 @@ let rec null_transition_explore m found reconsider =
 let begin_executing m =
 	{substrate=m; current_states=m.start:: (null_transition_explore m [m.start] [m.start])}
 
-let check_transition (c:'a) (t:'a transition) =
-	(fst t) c
+
 
 let step_execution e c =
 	let next_states = List.map e.current_states
@@ -59,7 +68,7 @@ let step_execution e c =
 			(* O(N) *)
 		|> List.fold_left ~init:[] ~f:(fun acc st ->
 			(List.filter ~f:(check_transition c) st.transitions
-			|> List.map ~f:snd)@acc) in
+			|> List.map ~f:transition_target)@acc) in
 	let null_states = null_transition_explore e.substrate next_states next_states in
 	{ substrate = e.substrate; current_states = union next_states null_states }
 
@@ -88,7 +97,7 @@ let get_state_id () =
 	state_counter := !state_counter + 1 ;
 	!state_counter
 
-let construct_state label_root transitions null_transitions =
+let construct_state label_root transitions null_transitions :'a state=
 	let id = string_of_int (get_state_id ()) in
 	{ label = label_root ^ id; transitions; null_transitions }
 	
@@ -123,18 +132,19 @@ let alternate machines =
 
 let string_to_machine s =
 	let state_list_unconnected = String.fold s ~init:[] ~f:(fun acc c ->
-		((fun x -> x = c) ,construct_state (Char.to_string c) [] []) :: acc)
+		(c ,construct_state (Char.to_string c) [] []) :: acc)
 		|> List.rev in
 	let rec connect_states = function
 		| [] -> []
 		| [(_,hd)] -> [hd]
-		| (_,s1)::((c2,s2)::_ as tl) -> {s1 with transitions = [c2,s2.label] }::(connect_states tl) in
+		| (_,s1)::((c2,s2)::_ as tl) ->
+			{s1 with transitions = [Single (c2,s2.label)] }::(connect_states tl) in
 	if s = ""
 	then let state = construct_state "singleton" [] [] in
 		{start=state.label; final_state=[state.label];
 		map = StateMap.singleton state.label state }
 	else let second = List.hd_exn state_list_unconnected in
-	let  init = construct_state "init" [fst second, (snd second).label] [] in
+	let  init = construct_state "init" [Single (fst second, (snd second).label)] [] in
 		{ start = init.label;
 		final_state = [(List.last_exn state_list_unconnected |> snd).label];
 		map = List.fold_left (connect_states state_list_unconnected)
@@ -151,7 +161,7 @@ let star machine =
 
 let character_class_machine p =
 	let final = construct_state "final" [] [] in
-	let init = construct_state "singleton" [p,final.label] [] in
+	let init = construct_state "singleton" [Fun (p,final.label)] [] in
 	{ start = init.label; final_state = [final.label];
 	map = StateMap.singleton final.label final |> StateMap.add ~key:init.label ~data:init }
 
