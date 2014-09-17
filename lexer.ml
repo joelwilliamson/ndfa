@@ -28,13 +28,14 @@ let get_first_token tcl input : (token option * string) =
 			let input' = String.drop_prefix input (String.length prefix) in
 			(Some {identifier=ident; raw = prefix},input')
 			
-let rec tokenize tcl input : token list =
-	match input with
-	| "" -> []
-	| input -> let (tok,input') = get_first_token tcl input
-		in match tok with
-			| None -> failwith ("Couldn't parse line ending with " ^ input')
-			| Some tok -> tok :: (tokenize tcl input')
+let tokenize tcl input : token list =
+	let rec aux =function
+		| "" -> []
+		| input' -> let (tok,input'') = get_first_token tcl input'
+			in match tok with
+				| None -> failwith ("Couldn't parse line ending with " ^ input)
+				| Some tok -> tok :: (aux input'')
+	in aux input
 
 (*let integer = Ndfa.Several (Ndfa.Class Char.is_digit) |> Ndfa.compile ;;
 let hex_int = Ndfa.Several (Ndfa.Class (fun c -> (Char.is_digit c) || (Char.lowercase c |> List.mem ['a';'b';'c';'d';'e';'f']))) |> Ndfa.compile ;;
