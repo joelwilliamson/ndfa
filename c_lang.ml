@@ -50,6 +50,20 @@ let strings = Lexer.(
 	{identifier="string" ;
 	regex = string_regex	})
 
+let character = Lexer.(
+	let regular c = c <> '\'' && c <> '\\'
+	in let string_regex = Ndfa.Concat [
+                          Ndfa.String "\'";
+                          Ndfa.Star (Ndfa.Union [
+                                  Ndfa.Class regular;
+                                  Ndfa.String "\\\\";
+                                  Ndfa.String "\\\'";
+                                  Ndfa.Concat [
+                                          Ndfa.String "\\";
+                                          Ndfa.Class regular]]);
+                          Ndfa.String "\'"]|> Ndfa.compile in
+	{identifier="character" ;
+	regex = string_regex	})
 let integers = Lexer.(
 	let ll_suffix  = Ndfa.Union [Ndfa.String "ll"; Ndfa.String "LL"]
 	and l_suffix = Ndfa.Union [Ndfa.String "l"; Ndfa.String "L"]
@@ -119,7 +133,7 @@ let compress_comments_mut s : string=
 	in aux (Bytes.of_string s) 0 false
 		
 
-let c_tokens = List.fold ~init:[whitespace;identifiers;strings;integers;cpp_comment;c_comment]
+let c_tokens = List.fold ~init:[character;whitespace;identifiers;strings;integers;cpp_comment;c_comment]
 		(* The ordering is important here. Since keywords have the form
 		of identifiers, it is important they come first in the token
 		list, such that the lexer will prefer calling something a
