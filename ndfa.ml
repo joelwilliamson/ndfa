@@ -38,6 +38,8 @@ type 'a execution = {
 	};;
 
 (* This is O(n^2)! Even sorting would be faster *)
+(* The asymptotic behaviour doesn't seem to matter. union currently takes
+ * about 4% of execution time in the c_lang benchmark *)
 let union l1 l2 = l1 @ (List.filter l2 ~f:(fun x -> List.mem l1 x |> not))
 (* For each state in the current states, if c matches a transition we
  * add it to the next set of states. After finding the transitions
