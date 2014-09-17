@@ -8,7 +8,9 @@ let keywords = In_channel.read_lines "c_keywords" |> List.map ~f:make_keyword
 
 let whitespace =
 	Lexer.({identifier = "white";
-	regex = Ndfa.Several (Ndfa.Class Char.is_whitespace) |> Ndfa.compile })
+	regex = Ndfa.Several (Ndfa.Class
+		(fun c -> Char.is_whitespace c || c = '\011' || c = '\012'))
+		|> Ndfa.compile })
 
 let make_symbol = function
 	| identifier::sym::[] ->
