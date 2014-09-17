@@ -130,7 +130,10 @@ let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\
 
 let count_whitespace_string () = In_channel.read_all "./count_whitespace.c"
 		|> compress_comments_mut
-		|> Lexer.tokenize c_tokens |> ignore
+		|> String.split_lines
+		|> List.map ~f:(Lexer.tokenize c_tokens)
+		|> List.join |> ignore
+
 
 let () = [Bench.Test.create ~name:"Count Whitespace" count_whitespace_string]
 	|> Bench.make_command
