@@ -111,6 +111,7 @@ let cpp_comment = Lexer.(
 			Ndfa.Star (Ndfa.Class ((<>) '\n'))]
 		|> Ndfa.compile})
 
+
 let strip_whitespace : (Lexer.token list -> Lexer.token list) =
 	List.filter ~f:(fun (t:Lexer.token) -> Lexer.(t.identifier) <> "white")
 
@@ -143,13 +144,12 @@ let c_tokens = List.fold ~init:[character;whitespace;identifiers;strings;integer
 
 let c_string = "while\t{return;} goto lbl; \"A string with a quote\\\" in it\\n\";2+2;//This line is 4\nlbl:100uLL+0x23f8*0345<<=4  \t\ndo->static;int x = 4;/*A C comment\nspans several lines (** / *) */int y = 3;"
 
-let count_whitespace_string () = In_channel.read_all "./count_whitespace.c"
-		|> compress_comments_mut
-		|> String.split_lines
-		|> List.map ~f:(Lexer.tokenize c_tokens)
-		|> List.join |> ignore
+let lex_c_string str =
+	compress_comments_mut str
+	|> String.split_lines
+	|> List.map ~f:(Lexer.tokenize c_tokens)
+	|> List.join
+	|> strip_whitespace
 
-
-let () = [Bench.Test.create ~name:"Count Whitespace" count_whitespace_string]
-	|> Bench.make_command
-	|> Command.run
+let lex_c_file filename =
+	In_channel.read_all filename |> lex_c_string
