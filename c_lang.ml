@@ -1,5 +1,4 @@
 open Core.Std
-open Core_bench.Std
 
 let make_keyword key =
 	Lexer.({identifier = key;
