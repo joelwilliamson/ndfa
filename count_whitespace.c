@@ -2,6 +2,7 @@
 
 int main()
 	{
+	// This is the main function
 	int blanks, tabs, newlines;
 	blanks = 0;
 	tabs = 0;
@@ -10,6 +11,8 @@ int main()
 	int c;
 	while ((c=getchar()) != EOF)
 		{
+		/* This is a loop
+		 * It runs several times. */
 		if (c == ' ' || c == '\n' || c == '\t')
 			{
 			++blanks;
