@@ -4,7 +4,9 @@ open Lexer
 type c_token =
 	| Tilde | Bang | Hash | Mod | Caret | Ampersand | Star | Lparen | Rparen
 	| Minus | Plus | Assign | Lbrace | Rbrace | Lbracket | Rbracket | Colon
-	| Semi | Quote | Apostrophe | Pipe | Backslash | Less | Comma | Greater
+	| Semi 
+	(* There is no quote token. All quotes are part of strings *)
+	| Pipe | Backslash | Less | Comma | Greater
 	| Period | Question | Slash | Arrow | Inc | Dec | Lshift | Rshift | Lte
 	| Gte | Equal | Nequal | And | Or | Ellipse | Star_assign | Slash_assign
 	| Mod_assign | Plus_assign | Minus_assign | Lshift_assign | Rshift_assign
@@ -21,7 +23,6 @@ type c_token =
 	| Character of string
 	| Number of string
 	| Comment of string
-	| Unidentified
 
 let tok_to_fancy (tok:token) = let (ident,raw) = (tok.identifier,tok.raw) in
 	match ident with
@@ -32,7 +33,8 @@ let tok_to_fancy (tok:token) = let (ident,raw) = (tok.identifier,tok.raw) in
 	| "LBRACKET" -> Lbracket | "RBRACKET" -> Rbracket | "COLON" -> Colon
 	| "SEMI" -> Semi
 	| "QUOTE" -> failwith "Unmatched quotes forbidden"
-	| "APOSTROPHE" -> Apostrophe | "PIPE" -> Pipe | "BACKSLASH" -> Backslash
+	| "APOSTROPHE" -> failwith "Unmatched apostrophes forbidden"
+	| "PIPE" -> Pipe | "BACKSLASH" -> Backslash
 	| "LT" -> Less | "COMMA" -> Comma | "GT" -> Greater | "PERIOD" -> Period
 	| "QUESTION" -> Question | "SLASH" -> Slash | "ARROW" -> Arrow
 	| "INC" -> Inc | "DEC" -> Dec | "LSHIFT" -> Lshift | "RSHIFT" -> Rshift
