@@ -70,33 +70,33 @@ let tok_to_fancy (tok:token) = let (ident,raw) = (tok.identifier,tok.raw) in
 
 
 let make_keyword key =
-	Lexer.({identifier = key;
-	regex = Ndfa.String key |> Ndfa.compile })
+	{identifier = key;
+	regex = Ndfa.String key |> Ndfa.compile }
 
 let keywords = In_channel.read_lines "c_keywords" |> List.map ~f:make_keyword
 
 let whitespace =
-	Lexer.({identifier = "white";
+	{identifier = "white";
 	regex = Ndfa.Several (Ndfa.Class
 		(fun c -> Char.is_whitespace c || c = '\011' || c = '\012'))
-		|> Ndfa.compile })
+		|> Ndfa.compile }
 
 let make_symbol = function
 	| identifier::sym::[] ->
-		Lexer.({identifier;regex=Ndfa.String sym |> Ndfa.compile})
+		{identifier;regex=Ndfa.String sym |> Ndfa.compile}
 	| _ -> failwith "Invalid line"
 
 let symbols = In_channel.read_lines "c_punctuation"
 		|> List.map ~f:(String.split ~on:' ')
 		|> List.map ~f:make_symbol
 
-let identifiers = Lexer.(
+let identifiers = 
 	{identifier="IDENT";
 	regex=Ndfa.Concat [
 		Ndfa.Class (fun c -> Char.is_alpha c || c = '_');
 		Ndfa.Star (Ndfa.Class (fun c-> Char.is_alphanum c || c = '_'))]
 		|> Ndfa.compile
-	})
+	}
 
 (* A C string is formatted as follows: The first character is a ".
  * This is followed by any number of regular characters (non- \"), pairs of \\
@@ -104,7 +104,7 @@ let identifiers = Lexer.(
  * quote.
  * "([^\"]|\\|\"|\[^\"])*"
  *)
-let strings = Lexer.(
+let strings = 
 	let regular c = c <> '"' && c <> '\\'
 	in let string_regex = Ndfa.Concat [
                           Ndfa.String "\"";
@@ -117,9 +117,9 @@ let strings = Lexer.(
                                           Ndfa.Class regular]]);
                           Ndfa.String "\""]|> Ndfa.compile in
 	{identifier="string" ;
-	regex = string_regex	})
+	regex = string_regex	}
 
-let character = Lexer.(
+let character = 
 	let regular c = c <> '\'' && c <> '\\'
 	in let string_regex = Ndfa.Concat [
                           Ndfa.String "\'";
@@ -132,8 +132,8 @@ let character = Lexer.(
                                           Ndfa.Class regular]]);
                           Ndfa.String "\'"]|> Ndfa.compile in
 	{identifier="character" ;
-	regex = string_regex	})
-let integers = Lexer.(
+	regex = string_regex	}
+let integers = 
 	let ll_suffix  = Ndfa.Union [Ndfa.String "ll"; Ndfa.String "LL"]
 	and l_suffix = Ndfa.Union [Ndfa.String "l"; Ndfa.String "L"]
 	and unsigned_suffix = Ndfa.Union [Ndfa.String "u" ; Ndfa.String "U"]
@@ -156,7 +156,7 @@ let integers = Lexer.(
 		Ndfa.Maybe integer_suffix ]
 	in
 	{identifier="integer" ;
-	regex=Ndfa.compile integer_constant})
+	regex=Ndfa.compile integer_constant}
 
 (* This breaks with the assumption that each token is on a single line. It
  * interacts very badly with the line by line approach used to speed up
@@ -164,7 +164,7 @@ let integers = Lexer.(
  * either replace each comment with a space (in compliance with the standard)
  * or to strip newlines from within comments so each one is on a single line.
  *)
-let c_comment = Lexer.(
+let c_comment = 
 	{identifier = "c_comment" ;
 	regex = Ndfa.Concat [ Ndfa.String "/*";
 			Ndfa.Star (Ndfa.Union [
@@ -172,17 +172,17 @@ let c_comment = Lexer.(
 				Ndfa.Concat [Ndfa.Class ((<>) '*') ;
 					Ndfa.String "/"]]) ;
 			Ndfa.String "*/" ] |> Ndfa.compile
-	})
+	}
 
-let cpp_comment = Lexer.(
+let cpp_comment = 
 	{identifier = "cpp_comment" ;
 	regex = Ndfa.Concat [ Ndfa.String "//" ;
 			Ndfa.Star (Ndfa.Class ((<>) '\n'))]
-		|> Ndfa.compile})
+		|> Ndfa.compile}
 
 
 let strip_whitespace : (Lexer.token list -> Lexer.token list) =
-	List.filter ~f:(fun (t:Lexer.token) -> Lexer.(t.identifier) <> "white")
+	List.filter ~f:(fun (t:Lexer.token) -> t.identifier <> "white")
 
 (* Since all C tokens are expected to be on a single line, this function
  * removes all newlines within a C-style comment
