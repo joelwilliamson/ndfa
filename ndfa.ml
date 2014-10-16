@@ -37,6 +37,8 @@ type 'a execution = {
 					 * can be in several states at once. *)
 	};;
 
+let get_state m state_name = StateMap.find m.map state_name
+
 (* This is O(n^2)! Even sorting would be faster *)
 (* The asymptotic behaviour doesn't seem to matter. union currently takes
  * about 4% of execution time in the c_lang benchmark *)
@@ -48,7 +50,7 @@ let union l1 l2 = l1 @ (List.filter l2 ~f:(fun x -> List.mem l1 x |> not))
 let rec null_transition_explore m found reconsider =
 	let new_states = List.fold_left ~init:[] reconsider
 		~f:(fun acc state_name ->
-			StateMap.find m.map state_name
+			get_state m state_name
 			|> function | None -> acc | Some state ->
 				state.null_transitions @ acc)
 		|> List.filter ~f:(fun x -> not (List.mem found x)) in
@@ -63,7 +65,7 @@ let begin_executing m =
 
 let step_execution e c =
 	let next_states = List.map e.current_states
-			~f:(fun s -> StateMap.find e.substrate.map s)
+			~f:(fun s -> get_state e.substrate s)
 			(* O(NlgN) *)
 		(* Remove any states that didn't exist. This should be a no-op *)
 		|> List.filter_map ~f:Fn.id
